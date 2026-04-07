@@ -136,7 +136,8 @@ Cloud fallback order is:
 
 1. Groq for fast general analytics responses
 2. DeepSeek for stronger reasoning-style analysis
-3. OpenAI as an additional fallback if configured
+3. OpenRouter for hosted routing and embeddings
+4. OpenAI as an additional fallback if configured
 
 Why these two were added:
 
@@ -148,14 +149,26 @@ Set these env vars when you want cloud fallback beyond Ollama:
 ```env
 GROQ_KEY=
 DEEPSEEK_KEY=
+OPENROUTER_API_KEY=
 ```
 
 LangChain is used in those cloud model paths.
+OpenRouter is also used for embeddings when available.
 
 Important files:
 
 - `packages/ai-engine/src/constants.ts`
 - `apps/web/server/routers/ai.ts`
+
+## Working with anomalies, search, export, and SSO
+
+These features now have real foundation code paths:
+
+- anomalies: `apps/worker/jobs/anomaly-detector.ts` and `apps/web/server/routers/anomaly.ts`
+- vector search: `apps/worker/jobs/vector-indexer.ts` and `apps/web/server/routers/rag.ts`
+- warehouse export: `apps/worker/jobs/warehouse-exporter.ts` and `apps/web/server/routers/warehouse.ts`
+- SSO config: `apps/web/server/routers/sso.ts` and `apps/web/lib/vault.ts`
+- monitoring: `apps/web/instrumentation.ts` and `apps/worker/lib/monitoring.ts`
 
 ## Useful commands
 

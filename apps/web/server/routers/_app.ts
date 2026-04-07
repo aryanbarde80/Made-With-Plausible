@@ -1,5 +1,6 @@
 import { createTRPCRouter } from "../trpc/trpc";
 import { aiRouter } from "./ai";
+import { anomalyRouter } from "./anomaly";
 import { alertRouter } from "./alert";
 import { analyticsRouter } from "./analytics";
 import { annotationRouter } from "./annotation";
@@ -13,10 +14,14 @@ import { goalRouter } from "./goal";
 import { memberRouter } from "./member";
 import { orgRouter } from "./org";
 import { pluginRouter } from "./plugin";
+import { ragRouter } from "./rag";
 import { reportRouter } from "./report";
+import { securityRouter } from "./security";
 import { siteRouter } from "./site";
+import { ssoRouter } from "./sso";
 import { superadminRouter } from "./superadmin";
 import { userRouter } from "./user";
+import { warehouseRouter } from "./warehouse";
 
 export const appRouter = createTRPCRouter({
   auth: authRouter,
@@ -33,11 +38,15 @@ export const appRouter = createTRPCRouter({
   annotation: annotationRouter,
   filter: filterRouter,
   ai: aiRouter,
+  anomaly: anomalyRouter,
   plugin: pluginRouter,
   apiKey: apiKeyRouter,
   auditLog: auditLogRouter,
-  superadmin: superadminRouter
+  rag: ragRouter,
+  security: securityRouter,
+  sso: ssoRouter,
+  superadmin: superadminRouter,
+  warehouse: warehouseRouter
 });
 
 export type AppRouter = typeof appRouter;
-

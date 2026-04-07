@@ -2,11 +2,12 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
 import { db } from "@pulseboard/db";
-import { createTRPCRouter, publicProcedure } from "../trpc/trpc";
-import { generateInsight } from "@pulseboard/ai-engine";
+import { generateEmbedding, generateInsight, rankSearchDocuments } from "@pulseboard/ai-engine";
+
+import { createTRPCRouter, protectedProcedure } from "../trpc/trpc";
 
 export const aiRouter = createTRPCRouter({
-  ask: publicProcedure
+  ask: protectedProcedure
     .input(z.object({ siteId: z.string(), prompt: z.string() }))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.orgId) {
@@ -24,10 +25,26 @@ export const aiRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
+      const queryEmbedding = await generateEmbedding(input.prompt);
+      const searchDocuments = await db.searchDocument.findMany({
+        where: {
+          orgId: ctx.orgId,
+          OR: [{ siteId: site.id }, { siteId: null }]
+        },
+        take: 50
+      });
+      const contextMatches = rankSearchDocuments(queryEmbedding, searchDocuments, 3);
+
       const insight = await generateInsight(input.prompt, {
         siteName: site.domain,
-        summary:
-          "Last 30 days: 12.3k visitors, 44.8k pageviews, organic search is the strongest source, pricing page traffic is growing, bounce rate is improving."
+        summary: [
+          "Last 30 days: 12.3k visitors, 44.8k pageviews, organic search is the strongest source, pricing page traffic is growing, bounce rate is improving.",
+          contextMatches.length
+            ? `Retrieved context:\n${contextMatches
+                .map((match) => `- ${match.title}: ${match.content.slice(0, 180)}`)
+                .join("\n")}`
+            : "No indexed historical context was found yet."
+        ].join("\n\n")
       });
 
       await db.aIInsight.create({
@@ -43,7 +60,7 @@ export const aiRouter = createTRPCRouter({
 
       return { response: insight.text, provider: insight.provider, model: insight.model };
     }),
-  getHistory: publicProcedure.input(z.object({ siteId: z.string() })).query(async ({ ctx, input }) => {
+  getHistory: protectedProcedure.input(z.object({ siteId: z.string() })).query(async ({ ctx, input }) => {
     if (!ctx.orgId) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
@@ -59,7 +76,7 @@ export const aiRouter = createTRPCRouter({
       take: 20
     });
   }),
-  save: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
+  save: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
     if (!ctx.orgId) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
@@ -71,7 +88,7 @@ export const aiRouter = createTRPCRouter({
 
     return { ok: true };
   }),
-  delete: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
+  delete: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
     if (!ctx.orgId) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
@@ -82,7 +99,7 @@ export const aiRouter = createTRPCRouter({
 
     return { ok: true };
   }),
-  feedback: publicProcedure
+  feedback: protectedProcedure
     .input(z.object({ id: z.string(), feedback: z.enum(["GOOD", "BAD"]) }))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.orgId) {

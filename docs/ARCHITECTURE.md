@@ -11,6 +11,7 @@ The analytics data layer is powered by Plausible and ClickHouse.
 The SaaS product layer is powered by Next.js, Prisma, PostgreSQL, Redis, Ably, Resend, and Ollama.
 The AI orchestration layer also uses LangChain.
 An optional Python sidecar can use Celery over Redis for Python-native jobs.
+The observability layer now includes Sentry, and the hosted AI routing layer includes OpenRouter.
 
 Concrete infrastructure split:
 
@@ -47,6 +48,12 @@ PulseBoard adds product features around Plausible:
 - alerting and reporting
 - API keys
 - plugin installation and configuration
+- anomaly records
+- semantic search documents
+- warehouse export destinations
+- warehouse export runs
+- SSO connection metadata
+- encrypted secret storage
 
 This layer lives mostly in:
 
@@ -94,6 +101,30 @@ This is intended for:
 5. Response is persisted and rendered back to the user.
 
 The key architectural rule is that the model should reason over real analytics context, not generic guesses.
+
+When indexed documents exist, the AI layer can retrieve relevant historical context before generation.
+
+## RAG flow
+
+1. historical content is embedded and stored in `SearchDocument`
+2. a query is embedded
+3. candidate documents are ranked by similarity
+4. the top matches are returned directly or injected into AI context
+
+## Export flow
+
+1. an org configures a `WarehouseDestination`
+2. an export run is created
+3. the worker writes a status and payload preview
+4. adapter-specific delivery can then push the export to BigQuery or Snowflake
+
+## SSO flow
+
+1. an org stores an SSO connection
+2. sensitive client secrets are stored through the encrypted vault path
+3. the app generates an authorization URL
+4. the callback route receives the authorization response
+5. token exchange and JIT provisioning are the next implementation layer
 
 ## Background work
 

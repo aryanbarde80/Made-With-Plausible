@@ -17,6 +17,15 @@ PulseBoard is a multi-tenant analytics workspace built around self-hosted Plausi
 - `packages/cache`: Redis abstraction and rate-limit helpers
 - `packages/ui`: shared UI primitives
 
+## Platform extensions now in the repo
+
+- Sentry instrumentation foundations for frontend, backend, and worker observability
+- OpenRouter support for hosted generation and embeddings
+- anomaly detection models, routes, and worker jobs
+- RAG and vector-search foundations
+- warehouse destination and export-run foundations
+- SSO configuration and encrypted secret storage foundations
+
 ## Architecture
 
 ```text
@@ -154,6 +163,14 @@ In this repo, Ollama is intentionally deployed separately so the main web servic
 
 LangChain is used inside the AI engine to standardize prompt templates and cloud-model orchestration across Groq, DeepSeek, and OpenAI.
 
+### Why OpenRouter
+
+OpenRouter gives PulseBoard a provider-agnostic cloud model layer for hosted generation and embeddings. It works well here because PulseBoard needs flexibility between local inference, low-latency hosted inference, and semantic retrieval without rewriting the AI engine each time.
+
+### Why Sentry
+
+Sentry gives the app and worker a real observability layer. That matters because the product spans auth, AI, analytics, Redis, email, exports, and collaboration, and those systems become hard to operate safely without centralized error tracking.
+
 ### Why Celery
 
 Celery is included as an optional Python sidecar for background work that benefits from the Python ecosystem.
@@ -233,6 +250,7 @@ This is done through [`apps/web/start.sh`](/C:/Users/aryan/OneDrive/Documents/Ne
 - Alerts and scheduled reports
 - Plugin runtime and marketplace foundation
 - Public REST API and internal tRPC API
+- observability, vector search, export, and enterprise-ready extension foundations
 
 ### Main route groups
 
@@ -340,11 +358,22 @@ The full development template lives in [`.env.example`](/C:/Users/aryan/OneDrive
 - `OLLAMA_MODEL`: model name
 - `CELERY_BROKER_URL`: optional Celery broker URL
 - `CELERY_RESULT_BACKEND`: optional Celery result backend
+- `OPENROUTER_API_KEY`: OpenRouter key for hosted generation and embeddings
+- `OPENROUTER_MODEL`: default OpenRouter generation model
+- `OPENROUTER_EMBEDDING_MODEL`: default OpenRouter embedding model
 - `GROQ_KEY`: Groq API key for fast cloud inference fallback
 - `GROQ_MODEL`: Groq model override
 - `DEEPSEEK_KEY`: DeepSeek API key for reasoning-oriented cloud fallback
 - `DEEPSEEK_MODEL`: DeepSeek model override
 - `OPENAI_API_KEY`: optional hosted fallback
+
+### Observability
+
+- `SENTRY_DSN`
+- `NEXT_PUBLIC_SENTRY_DSN`
+- `SENTRY_AUTH_TOKEN`
+- `SENTRY_ORG`
+- `SENTRY_PROJECT`
 
 ### Email
 
@@ -386,8 +415,9 @@ AI provider order currently is:
 1. Ollama
 2. Groq
 3. DeepSeek
-4. OpenAI
-5. built-in fallback summary
+4. OpenRouter
+5. OpenAI
+6. built-in fallback summary
 
 Those values currently live in:
 
@@ -403,8 +433,11 @@ ABLY_API_KEY=
 NEXT_PUBLIC_ABLY_KEY=
 RESEND_API_KEY=
 RESEND_FROM=PulseBoard <onboarding@resend.dev>
+OPENROUTER_API_KEY=
 GROQ_KEY=
 DEEPSEEK_KEY=
+SENTRY_DSN=
+NEXT_PUBLIC_SENTRY_DSN=
 ```
 
 Render-managed values come from [`render.yaml`](/C:/Users/aryan/OneDrive/Documents/New%20project%202/Made-With-Plausible/render.yaml):
@@ -438,9 +471,10 @@ When a new developer opens this repo, the easiest way to reason about it is:
    Locally this is Docker `redis:7-alpine`; in production this is Render Key Value.
 4. The web service hosts the Next app and starts the worker.
 5. Ably adds collaboration.
-6. Ollama and LangChain power AI orchestration.
-7. Celery is available for Python-native async jobs.
-8. Resend handles email.
+6. Ollama, LangChain, and OpenRouter power AI orchestration.
+7. Sentry gives cross-runtime observability.
+8. Celery is available for Python-native async jobs.
+9. Resend handles email.
 
 If you keep that mental split in mind, the repo becomes much easier to navigate.
 
@@ -461,6 +495,7 @@ pnpm test:e2e
 - [Development Guide](./docs/DEVELOPMENT.md)
 - [Deployment Guide](./docs/DEPLOYMENT.md)
 - [Operations Guide](./docs/OPERATIONS.md)
+- [Platform Roadmap](./docs/PLATFORM-ROADMAP.md)
 
 ## Honest status
 

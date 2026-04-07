@@ -20,9 +20,25 @@ export const reportJobSchema = z.object({
   reportId: z.string()
 });
 
+export const anomalyJobSchema = z.object({
+  siteId: z.string().optional()
+});
+
+export const vectorIndexJobSchema = z.object({
+  orgId: z.string().optional(),
+  siteId: z.string().optional()
+});
+
+export const warehouseExportJobSchema = z.object({
+  destinationId: z.string().optional(),
+  orgId: z.string().optional()
+});
+
 export const emailQueue = new Queue("email-queue", { connection });
 export const alertQueue = new Queue("alert-queue", { connection });
 export const reportQueue = new Queue("report-queue", { connection });
 export const verifyQueue = new Queue("verify-queue", { connection });
 export const aiContextQueue = new Queue("ai-context-queue", { connection });
-
+export const anomalyQueue = new Queue("anomaly-queue", { connection });
+export const vectorIndexQueue = new Queue("vector-index-queue", { connection });
+export const warehouseExportQueue = new Queue("warehouse-export-queue", { connection });

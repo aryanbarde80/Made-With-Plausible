@@ -16,6 +16,7 @@
     "@pulseboard/email": "workspace:*",
     "@pulseboard/plausible-sdk": "workspace:*",
     "@pulseboard/queue": "workspace:*",
+    "@sentry/node": "^10.47.0",
     "bullmq": "^5.50.0",
     "pino": "^9.6.0",
     "zod": "^3.24.3"
@@ -24,4 +25,3 @@
     "tsx": "^4.19.3"
   }
 }
-

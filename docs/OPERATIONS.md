@@ -24,6 +24,7 @@ Check:
 - `/api/health`
 - Render service status
 - deploy logs
+- Sentry project health if enabled
 
 ### Database health
 
@@ -99,6 +100,8 @@ Check:
 - Ollama service URL
 - model availability
 - prompt/context construction
+- OpenRouter configuration when hosted routing is enabled
+- vector index freshness when retrieved context is expected
 
 ### If alerts or reports are not happening
 
@@ -113,6 +116,15 @@ If the optional Celery sidecar is enabled, also check:
 
 - Celery worker logs
 - Redis broker/back-end connectivity
+
+### If search or RAG results are weak
+
+Check:
+
+- whether `SearchDocument` rows exist
+- whether the vector indexer job is running
+- whether OpenRouter embeddings are configured
+- whether deterministic fallback embeddings are being used
 
 ## Keeping the service awake
 

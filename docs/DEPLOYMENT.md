@@ -11,6 +11,15 @@ PulseBoard is currently intended to deploy as:
 - optional one Celery sidecar if you want Python-native background jobs
 - optional external Plausible and Ably services
 
+Feature-specific production additions now supported by the codebase:
+
+- Sentry DSN for frontend/backend/worker monitoring
+- OpenRouter key for hosted generation and embeddings
+- anomaly detection worker cycle
+- vector indexing worker cycle
+- warehouse destination and export-run persistence
+- org-scoped SSO configuration storage
+
 Important distinction:
 
 - local development uses Docker Postgres `postgres:16-alpine` and Docker Redis `redis:7-alpine`
@@ -50,8 +59,11 @@ ABLY_API_KEY=
 NEXT_PUBLIC_ABLY_KEY=
 RESEND_API_KEY=
 RESEND_FROM=PulseBoard <onboarding@resend.dev>
+OPENROUTER_API_KEY=
 GROQ_KEY=
 DEEPSEEK_KEY=
+SENTRY_DSN=
+NEXT_PUBLIC_SENTRY_DSN=
 CELERY_BROKER_URL=
 CELERY_RESULT_BACKEND=
 ```
