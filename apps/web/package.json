@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@pulseboard/ai-engine": "workspace:*",
+    "@pulseboard/cache": "workspace:*",
     "@pulseboard/db": "workspace:*",
     "@pulseboard/email": "workspace:*",
     "@pulseboard/plausible-sdk": "workspace:*",
