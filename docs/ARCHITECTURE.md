@@ -9,6 +9,8 @@ PulseBoard is split into two broad layers:
 
 The analytics data layer is powered by Plausible and ClickHouse.
 The SaaS product layer is powered by Next.js, Prisma, PostgreSQL, Redis, Ably, Resend, and Ollama.
+The AI orchestration layer also uses LangChain.
+An optional Python sidecar can use Celery over Redis for Python-native jobs.
 
 Concrete infrastructure split:
 
@@ -125,7 +127,14 @@ This is a pragmatic deployment choice that reduces Render complexity for a singl
 
 - Ollama constants
 - model invocation abstraction
+- LangChain prompt chains for cloud-model orchestration
 - future room for model switching and prompt strategy
+
+### `apps/celery-worker`
+
+- optional Python worker
+- Redis-backed Celery execution
+- sidecar for Python-native async workloads
 
 ### `packages/cache`
 
@@ -159,8 +168,10 @@ The repo is optimized around speed of product iteration:
 - Prisma for schema iteration
 - Plausible instead of building a raw analytics engine
 - Redis for cache and jobs
+- Celery for optional Python-native async workflows
 - Ably for collaboration
 - Ollama for controllable AI
+- LangChain for model orchestration
 
 Each integration removes one major infrastructure problem from the app itself.
 

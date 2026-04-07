@@ -40,6 +40,7 @@ Check:
 - cache errors
 - queue issues
 - job timing drifts
+- Celery broker or result-backend issues if the optional Python worker is enabled
 
 ### Plausible health
 
@@ -107,6 +108,11 @@ Check:
 - worker loop logs
 - database records for scheduled tasks
 - email delivery
+
+If the optional Celery sidecar is enabled, also check:
+
+- Celery worker logs
+- Redis broker/back-end connectivity
 
 ## Keeping the service awake
 

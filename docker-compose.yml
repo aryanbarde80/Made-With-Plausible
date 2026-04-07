@@ -63,8 +63,19 @@ services:
       - "1080:1080"
       - "1025:1025"
 
+  celery-worker:
+    build:
+      context: .
+      dockerfile: apps/celery-worker/Dockerfile
+    container_name: pulseboard-celery-worker
+    restart: unless-stopped
+    depends_on:
+      - redis
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+
 volumes:
   postgres-data:
   clickhouse-data:
   ollama-data:
-

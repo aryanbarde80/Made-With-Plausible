@@ -1,4 +1,7 @@
 import { createOpenAI, openai } from "@ai-sdk/openai";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+import { PromptTemplate } from "@langchain/core/prompts";
+import { ChatOpenAI } from "@langchain/openai";
 import { generateText } from "ai";
 
 import {
@@ -19,18 +22,28 @@ export interface InsightResult {
   model: string;
 }
 
-function buildPrompt(prompt: string, context: InsightContext) {
-  return [
+const insightPromptTemplate = PromptTemplate.fromTemplate(
+  [
     "You are PulseBoard AI.",
     "You analyze product and website analytics for operators, founders, and marketers.",
     "Use only the supplied analytics context and be explicit when the data is incomplete.",
-    `Site: ${context.siteName}`,
-    `Context: ${context.summary}`,
-    `User question: ${prompt}`
-  ].join("\n");
+    "Site: {siteName}",
+    "Context: {summary}",
+    "User question: {prompt}",
+    "Respond with concise analysis and concrete next steps."
+  ].join("\n")
+);
+
+async function buildPrompt(prompt: string, context: InsightContext) {
+  return insightPromptTemplate.format({
+    prompt,
+    siteName: context.siteName,
+    summary: context.summary
+  });
 }
 
 async function tryOllama(prompt: string, context: InsightContext) {
+  const compiledPrompt = await buildPrompt(prompt, context);
   const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
     method: "POST",
     headers: {
@@ -39,7 +52,7 @@ async function tryOllama(prompt: string, context: InsightContext) {
     body: JSON.stringify({
       model: OLLAMA_MODEL,
       stream: false,
-      prompt: buildPrompt(prompt, context)
+      prompt: compiledPrompt
     })
   })
     .then(async (response) => {
@@ -86,6 +99,28 @@ async function tryOpenAICompatible(
   });
 
   try {
+    const chainModel = new ChatOpenAI({
+      apiKey,
+      model,
+      configuration: {
+        baseURL
+      }
+    });
+    const chain = insightPromptTemplate.pipe(chainModel).pipe(new StringOutputParser());
+    const chainedText = (await chain.invoke({
+      prompt,
+      siteName: context.siteName,
+      summary: context.summary
+    })).trim();
+
+    if (chainedText) {
+      return {
+        text: chainedText,
+        provider,
+        model
+      };
+    }
+
     const result = await generateText({
       model: compatibleProvider(model),
       system: `You are PulseBoard AI. Use only this analytics context:\n${context.summary}`,
@@ -108,6 +143,25 @@ async function tryOpenAICompatible(
 
 async function tryOpenAI(prompt: string, context: InsightContext) {
   if (process.env.OPENAI_API_KEY) {
+    const chainModel = new ChatOpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      model: "gpt-4o-mini"
+    });
+    const chain = insightPromptTemplate.pipe(chainModel).pipe(new StringOutputParser());
+    const chainedText = (await chain.invoke({
+      prompt,
+      siteName: context.siteName,
+      summary: context.summary
+    })).trim();
+
+    if (chainedText) {
+      return {
+        text: chainedText,
+        provider: "openai" as const,
+        model: "gpt-4o-mini"
+      };
+    }
+
     const result = await generateText({
       model: openai("gpt-4o-mini"),
       system: `You are PulseBoard AI. Use only this context:\n${context.summary}`,

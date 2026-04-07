@@ -8,6 +8,7 @@ PulseBoard is currently intended to deploy as:
 - one managed Postgres database
 - one managed Redis-compatible key value service
 - one separate Ollama deployment
+- optional one Celery sidecar if you want Python-native background jobs
 - optional external Plausible and Ably services
 
 Important distinction:
@@ -51,6 +52,8 @@ RESEND_API_KEY=
 RESEND_FROM=PulseBoard <onboarding@resend.dev>
 GROQ_KEY=
 DEEPSEEK_KEY=
+CELERY_BROKER_URL=
+CELERY_RESULT_BACKEND=
 ```
 
 ## Managed by Render or repo defaults

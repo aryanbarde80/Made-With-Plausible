@@ -23,6 +23,7 @@ pnpm dev
 - Plausible
 - Ollama
 - Maildev
+- optional Celery worker
 
 This repo uses Docker for local stateful infrastructure on purpose:
 
@@ -75,6 +76,8 @@ Use:
 - `packages/ai-engine`
 - `apps/web/server/routers/ai.ts`
 
+LangChain now lives in the AI engine to keep prompt orchestration portable across providers.
+
 ### Email changes
 
 Use:
@@ -88,6 +91,10 @@ Use:
 
 - `apps/worker`
 - `packages/queue`
+
+For Python-native async work, also see:
+
+- `apps/celery-worker`
 
 ## Working with Ably
 
@@ -142,6 +149,8 @@ Set these env vars when you want cloud fallback beyond Ollama:
 GROQ_KEY=
 DEEPSEEK_KEY=
 ```
+
+LangChain is used in those cloud model paths.
 
 Important files:
 

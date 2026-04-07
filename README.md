@@ -7,6 +7,7 @@ PulseBoard is a multi-tenant analytics workspace built around self-hosted Plausi
 - `apps/web`: the main Next.js 14 application
 - `apps/docs`: the docs site
 - `apps/worker`: background job runtime used from the main container
+- `apps/celery-worker`: optional Python Celery sidecar for Python-native async jobs
 - `packages/db`: Prisma schema, client, seed, and migrations
 - `packages/plausible-sdk`: typed Plausible wrapper
 - `packages/ai-engine`: Ollama/OpenAI abstraction used for AI insights
@@ -149,6 +150,21 @@ Ollama runs local or self-hosted LLM inference for AI insights. It lets the prod
 
 In this repo, Ollama is intentionally deployed separately so the main web service stays simpler and cheaper to operate.
 
+### Why LangChain
+
+LangChain is used inside the AI engine to standardize prompt templates and cloud-model orchestration across Groq, DeepSeek, and OpenAI.
+
+### Why Celery
+
+Celery is included as an optional Python sidecar for background work that benefits from the Python ecosystem.
+
+Examples:
+
+- enrichment pipelines
+- document processing
+- ETL jobs
+- offline AI preprocessing
+
 ### Why Resend
 
 Resend handles transactional email:
@@ -169,6 +185,7 @@ The repository currently targets this production shape:
 - `1` managed Render Postgres database
 - `1` managed Render Key Value instance for Redis-compatible features
 - `1` separate Ollama deployment
+- optional `1` Celery sidecar for Python-native background jobs
 - optional external Plausible and Ably accounts
 
 The web service starts both:
@@ -261,6 +278,7 @@ Local Docker services from [`docker-compose.yml`](/C:/Users/aryan/OneDrive/Docum
 - Plausible CE: `ghcr.io/plausible/community-edition:v2.1.4`
 - Ollama: `ollama/ollama:latest`
 - Maildev: `maildev/maildev`
+- Celery worker: Python `3.11` sidecar in `apps/celery-worker`
 
 If you want local Ollama:
 
@@ -320,6 +338,8 @@ The full development template lives in [`.env.example`](/C:/Users/aryan/OneDrive
 
 - `OLLAMA_BASE_URL`: local/self-hosted Ollama base URL for local dev
 - `OLLAMA_MODEL`: model name
+- `CELERY_BROKER_URL`: optional Celery broker URL
+- `CELERY_RESULT_BACKEND`: optional Celery result backend
 - `GROQ_KEY`: Groq API key for fast cloud inference fallback
 - `GROQ_MODEL`: Groq model override
 - `DEEPSEEK_KEY`: DeepSeek API key for reasoning-oriented cloud fallback
@@ -418,8 +438,9 @@ When a new developer opens this repo, the easiest way to reason about it is:
    Locally this is Docker `redis:7-alpine`; in production this is Render Key Value.
 4. The web service hosts the Next app and starts the worker.
 5. Ably adds collaboration.
-6. Ollama adds AI.
-7. Resend handles email.
+6. Ollama and LangChain power AI orchestration.
+7. Celery is available for Python-native async jobs.
+8. Resend handles email.
 
 If you keep that mental split in mind, the repo becomes much easier to navigate.
 
