@@ -11,6 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@pulseboard/ai-engine": "workspace:*",
+    "@pulseboard/plausible-sdk": "workspace:*",
     "@pulseboard/types": "workspace:*",
     "@pulseboard/ui": "workspace:*",
     "@prisma/client": "^6.6.0",

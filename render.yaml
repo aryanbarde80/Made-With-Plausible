@@ -1,15 +1,20 @@
 services:
+  - type: keyvalue
+    name: pulseboard-redis
+    plan: starter
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
   - type: web
     name: pulseboard-web
     runtime: docker
     dockerfilePath: ./apps/web/Dockerfile
+    dockerContext: .
     plan: starter
     autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
-      - key: APP_URL
-        sync: false
       - key: DATABASE_URL
         fromDatabase:
           name: pulseboard-db
@@ -21,8 +26,18 @@ services:
           property: connectionString
       - key: NEXTAUTH_SECRET
         generateValue: true
-      - key: NEXTAUTH_URL
-        sync: false
+      - key: DIRECT_URL
+        fromDatabase:
+          name: pulseboard-db
+          property: connectionString
+      - key: SESSION_COOKIE_NAME
+        value: pulseboard.session
+      - key: PUBLIC_DEFAULT_ORG_SLUG
+        value: demo
+      - key: OLLAMA_MODEL
+        value: llama3
+      - key: SMTP_FROM
+        value: PulseBoard <hello@pulseboard.local>
       - key: ABLY_API_KEY
         sync: false
       - key: NEXT_PUBLIC_ABLY_KEY
@@ -33,8 +48,6 @@ services:
         sync: false
       - key: OLLAMA_BASE_URL
         sync: false
-      - key: OLLAMA_MODEL
-        value: llama3
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
@@ -50,6 +63,7 @@ services:
     name: pulseboard-worker
     runtime: docker
     dockerfilePath: ./apps/worker/Dockerfile
+    dockerContext: .
     autoDeploy: true
     envVars:
       - key: DATABASE_URL
@@ -59,7 +73,11 @@ services:
       - key: REDIS_URL
         fromService:
           name: pulseboard-redis
-          type: redis
+          type: keyvalue
+          property: connectionString
+      - key: DIRECT_URL
+        fromDatabase:
+          name: pulseboard-db
           property: connectionString
       - key: PLAUSIBLE_BASE_URL
         sync: false
@@ -74,4 +92,3 @@ databases:
   - name: pulseboard-db
     databaseName: pulseboard
     user: pulseboard
-

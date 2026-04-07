@@ -129,10 +129,13 @@ pnpm test:e2e
 
 ## 7. Deploy to Render
 
-- Use `render.yaml` for the baseline blueprint.
-- Provision the PostgreSQL and Redis services declared there.
-- Fill in external values for Ably, Plausible, SMTP, and app URLs in the Render dashboard.
-- Build the web and worker Docker services from `apps/web/Dockerfile` and `apps/worker/Dockerfile`.
+- Use `render.yaml` for the baseline blueprint. It provisions the web app, worker, PostgreSQL, and a managed key-value store for Redis-compatible usage.
+- The application can boot without manually setting `APP_URL` or `NEXTAUTH_URL`, because it falls back to Render runtime URLs automatically.
+- The only truly essential external values for full product behavior are:
+  - `PLAUSIBLE_BASE_URL` and `PLAUSIBLE_API_KEY` for live analytics data
+  - `ABLY_API_KEY` and `NEXT_PUBLIC_ABLY_KEY` for realtime collaboration
+  - `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM` for email workflows
+- If you skip those values, the app still deploys and runs, but analytics/realtime/email features stay in safe fallback mode.
 
 ## 8. Plugin development guide
 
@@ -147,4 +150,3 @@ pnpm test:e2e
 2. Run `pnpm install`, `pnpm lint`, `pnpm typecheck`, and relevant tests.
 3. Keep shared logic in `packages/*` and product-specific UI in `apps/*`.
 4. Update docs and env examples when adding new infrastructure or integrations.
-
