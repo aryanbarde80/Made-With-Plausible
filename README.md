@@ -130,12 +130,8 @@ pnpm test:e2e
 ## 7. Deploy to Render
 
 - Use `render.yaml` for the baseline blueprint. It provisions the web app, worker, PostgreSQL, and a managed key-value store for Redis-compatible usage.
-- The application can boot without manually setting `APP_URL` or `NEXTAUTH_URL`, because it falls back to Render runtime URLs automatically.
-- The only truly essential external values for full product behavior are:
-  - `PLAUSIBLE_BASE_URL` and `PLAUSIBLE_API_KEY` for live analytics data
-  - `ABLY_API_KEY` and `NEXT_PUBLIC_ABLY_KEY` for realtime collaboration
-  - `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM` for email workflows
-- If you skip those values, the app still deploys and runs, but analytics/realtime/email features stay in safe fallback mode.
+- The application is configured to boot on Render without manually setting any environment variables.
+- Live Plausible, Ably, Ollama, and SMTP integrations are optional. If you do not add those values, the app runs in built-in fallback mode with seeded/demo behavior instead of failing deployment.
 
 ## 8. Plugin development guide
 
