@@ -36,10 +36,8 @@ services:
         value: demo
       - key: OLLAMA_MODEL
         value: llama3.2:1b
-      - key: SMTP_PORT
-        value: "587"
-      - key: SMTP_FROM
-        value: PulseBoard <hello@pulseboard.local>
+      - key: RESEND_FROM
+        value: PulseBoard <onboarding@resend.dev>
 
 databases:
   - name: pulseboard-db

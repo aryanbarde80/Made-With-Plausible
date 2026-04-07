@@ -1,12 +1,9 @@
-const localhostAppUrl = "http://localhost:3000";
+import { APP_URL } from "./constants";
 
 export function getAppUrl() {
   return (
-    process.env.APP_URL ??
-    process.env.NEXT_PUBLIC_APP_URL ??
-    process.env.NEXTAUTH_URL ??
     process.env.RENDER_EXTERNAL_URL ??
-    localhostAppUrl
+    APP_URL
   );
 }
 
@@ -21,4 +18,3 @@ export function getBaseUrl() {
 export function isRenderRuntime() {
   return process.env.RENDER === "true";
 }
-

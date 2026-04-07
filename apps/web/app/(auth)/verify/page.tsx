@@ -20,9 +20,9 @@ export default async function VerifyPage({
           ? `We prepared a magic link for ${searchParams.email ?? "your inbox"}.`
           : "Magic links land here and complete sign-in automatically."}
       </p>
-      {searchParams?.token ? null : searchParams?.sent && !process.env.SMTP_HOST ? (
+      {searchParams?.token ? null : searchParams?.sent && !process.env.RESEND_API_KEY ? (
         <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          SMTP is not configured, so for local/demo usage you can open the magic link from the URL token directly.
+          Resend is not configured, so for local/demo usage you can open the magic link from the URL token directly.
         </p>
       ) : null}
     </Card>

@@ -84,7 +84,7 @@ export async function sendMagicLinkAction(formData: FormData) {
 
   const verifyUrl = `${getAppUrl()}/verify?token=${token}`;
 
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  if (process.env.RESEND_API_KEY) {
     await sendEmail({
       to: email,
       subject: "Your PulseBoard sign-in link",
@@ -92,7 +92,7 @@ export async function sendMagicLinkAction(formData: FormData) {
     });
   }
 
-  redirect(`/verify?sent=1&email=${encodeURIComponent(email)}${process.env.SMTP_HOST ? "" : `&token=${token}`}`);
+  redirect(`/verify?sent=1&email=${encodeURIComponent(email)}${process.env.RESEND_API_KEY ? "" : `&token=${token}`}`);
 }
 
 export async function verifyMagicLinkAction(token: string) {
@@ -127,4 +127,3 @@ export async function verifyMagicLinkAction(token: string) {
   await createSession(user.id);
   redirect("/dashboard");
 }
-
