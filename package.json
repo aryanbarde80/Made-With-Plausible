@@ -1,0 +1,25 @@
+{
+  "name": "pulseboard",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "turbo dev --parallel",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "test:e2e": "playwright test",
+    "db:generate": "pnpm --filter @pulseboard/db db:generate",
+    "db:migrate": "pnpm --filter @pulseboard/db db:migrate",
+    "db:seed": "pnpm --filter @pulseboard/db db:seed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.0",
+    "@types/node": "^22.15.3",
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  }
+}
+

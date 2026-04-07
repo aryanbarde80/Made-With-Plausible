@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pulseboard-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pulseboard}
+      POSTGRES_USER: ${POSTGRES_USER:-pulseboard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pulseboard}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: pulseboard-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    container_name: pulseboard-clickhouse
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+
+  plausible:
+    image: ghcr.io/plausible/community-edition:v2.1.4
+    container_name: pulseboard-plausible
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - clickhouse
+    ports:
+      - "8001:8000"
+    environment:
+      BASE_URL: ${PLAUSIBLE_SITE_URL:-http://localhost:8001}
+      SECRET_KEY_BASE: ${PLAUSIBLE_SECRET_KEY_BASE:-replace-with-secret-key-base}
+      DATABASE_URL: postgres://${POSTGRES_USER:-pulseboard}:${POSTGRES_PASSWORD:-pulseboard}@postgres:5432/${POSTGRES_DB:-pulseboard}
+      CLICKHOUSE_DATABASE_URL: http://clickhouse:8123/plausible
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: pulseboard-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+
+  maildev:
+    image: maildev/maildev
+    container_name: pulseboard-maildev
+    restart: unless-stopped
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+
+volumes:
+  postgres-data:
+  clickhouse-data:
+  ollama-data:
+

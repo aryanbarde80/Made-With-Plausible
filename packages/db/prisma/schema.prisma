@@ -1,0 +1,364 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  SUPERADMIN
+  USER
+}
+
+enum OrgPlan {
+  FREE
+  PRO
+  TEAM
+  ENTERPRISE
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  ANALYST
+  VIEWER
+}
+
+enum GoalType {
+  EVENT
+  PAGEVIEW
+}
+
+enum AlertChannel {
+  EMAIL
+  WEBHOOK
+  SLACK
+}
+
+enum ReportFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum InsightFeedback {
+  GOOD
+  BAD
+}
+
+model User {
+  id                String               @id @default(cuid())
+  email             String               @unique
+  name              String?
+  avatarUrl         String?
+  hashedPassword    String?
+  emailVerified     DateTime?
+  role              Role                 @default(USER)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  lastLoginAt       DateTime?
+  twoFactorEnabled  Boolean              @default(false)
+  twoFactorSecret   String?
+  sessions          Session[]
+  organizations     Organization[]
+  memberships       OrganizationMember[]
+  invitesSent       Invite[]             @relation("InviteSender")
+  annotations       Annotation[]
+  savedFilters      SavedFilter[]
+  dashboards        Dashboard[]
+  apiKeys           ApiKey[]
+  pluginsInstalled  Plugin[]             @relation("PluginInstaller")
+  insights          AIInsight[]
+  auditLogs         AuditLog[]
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  token      String   @unique
+  expiresAt  DateTime
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MagicLink {
+  id        String    @id @default(cuid())
+  email     String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+}
+
+model Organization {
+  id             String               @id @default(cuid())
+  name           String
+  slug           String               @unique
+  plan           OrgPlan              @default(FREE)
+  pageviewLimit  Int                  @default(10000)
+  siteLimit      Int                  @default(1)
+  memberLimit    Int                  @default(5)
+  createdAt      DateTime             @default(now())
+  ownerId        String
+  logoUrl        String?
+  customDomain   String?
+  settings       Json?
+  owner          User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members        OrganizationMember[]
+  invites        Invite[]
+  sites          Site[]
+  alerts         Alert[]
+  apiKeys        ApiKey[]
+  auditLogs      AuditLog[]
+  plugins        Plugin[]
+  dashboards     Dashboard[]
+  savedFilters   SavedFilter[]
+  insights       AIInsight[]
+}
+
+model OrganizationMember {
+  id        String     @id @default(cuid())
+  orgId     String
+  userId    String
+  role      MemberRole @default(VIEWER)
+  invitedAt DateTime   @default(now())
+  joinedAt  DateTime?
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+}
+
+model Invite {
+  id          String     @id @default(cuid())
+  orgId        String
+  email        String
+  role         MemberRole
+  token        String     @unique
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  invitedById  String
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("InviteSender", fields: [invitedById], references: [id], onDelete: Cascade)
+}
+
+model Site {
+  id                String       @id @default(cuid())
+  domain            String
+  orgId             String
+  timezone          String
+  plausibleSiteId   String?
+  isVerified        Boolean      @default(false)
+  verificationToken String
+  verifiedAt        DateTime?
+  sharedLinkUrl     String?
+  isPublic          Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  settings          Json?
+  org               Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  goals             Goal[]
+  funnels           Funnel[]
+  alerts            Alert[]
+  reports           Report[]
+  dashboards        Dashboard[]
+  annotations       Annotation[]
+  savedFilters      SavedFilter[]
+  insights          AIInsight[]
+}
+
+model Goal {
+  id              String   @id @default(cuid())
+  siteId          String
+  name            String
+  type            GoalType
+  eventName       String?
+  pagePathPattern String?
+  createdAt       DateTime @default(now())
+  site            Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  funnelSteps     FunnelStep[]
+}
+
+model Funnel {
+  id        String       @id @default(cuid())
+  siteId     String
+  name       String
+  createdAt  DateTime     @default(now())
+  site       Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  steps      FunnelStep[]
+}
+
+model FunnelStep {
+  id       String @id @default(cuid())
+  funnelId  String
+  order     Int
+  goalId    String
+  label     String
+  funnel    Funnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
+  goal      Goal   @relation(fields: [goalId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id              String       @id @default(cuid())
+  siteId          String
+  orgId           String
+  name            String
+  metric          String
+  operator        String
+  threshold       Float
+  windowMinutes   Int
+  channel         AlertChannel
+  destination     String
+  isActive        Boolean      @default(true)
+  lastTriggeredAt DateTime?
+  createdAt       DateTime     @default(now())
+  site            Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  org             Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  events          AlertEvent[]
+}
+
+model AlertEvent {
+  id           String   @id @default(cuid())
+  alertId       String
+  triggeredAt   DateTime @default(now())
+  value         Float
+  acknowledged  Boolean  @default(false)
+  alert         Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id          String          @id @default(cuid())
+  siteId       String
+  name         String
+  frequency    ReportFrequency
+  dayOfWeek    Int?
+  hourUTC      Int
+  recipients   String[]
+  isActive     Boolean         @default(true)
+  lastSentAt   DateTime?
+  createdAt    DateTime        @default(now())
+  template     Json?
+  site         Site            @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id         String       @id @default(cuid())
+  orgId       String
+  userId      String
+  name        String
+  keyHash     String
+  keyPrefix   String
+  scopes      String[]
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  rateLimit   Int         @default(100)
+  createdAt   DateTime    @default(now())
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id         String       @id @default(cuid())
+  orgId       String
+  userId      String?
+  action      String
+  resource    String
+  resourceId  String?
+  before      Json?
+  after       Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime     @default(now())
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user        User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Plugin {
+  id             String       @id @default(cuid())
+  orgId          String
+  name           String
+  slug           String
+  version        String
+  entrypoint     String
+  config         Json?
+  isEnabled      Boolean      @default(true)
+  installedAt    DateTime     @default(now())
+  installedById  String
+  org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  installedBy    User         @relation("PluginInstaller", fields: [installedById], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, slug])
+}
+
+model Dashboard {
+  id           String       @id @default(cuid())
+  siteId        String
+  orgId         String
+  name          String
+  isDefault     Boolean      @default(false)
+  layout        Json?
+  createdById   String
+  isShared      Boolean      @default(false)
+  shareToken    String?      @unique
+  site          Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy     User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  widgets       DashboardWidget[]
+}
+
+model DashboardWidget {
+  id          String    @id @default(cuid())
+  dashboardId String
+  type        String
+  title       String
+  config      Json?
+  position    Json?
+  size        Json?
+  dashboard   Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+}
+
+model Annotation {
+  id          String   @id @default(cuid())
+  siteId       String
+  date         DateTime
+  label        String
+  color        String
+  createdById  String
+  createdAt    DateTime @default(now())
+  site         Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  createdBy    User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+}
+
+model SavedFilter {
+  id          String       @id @default(cuid())
+  siteId       String
+  orgId        String
+  name         String
+  filters      Json
+  createdById  String
+  site         Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+}
+
+model AIInsight {
+  id         String          @id @default(cuid())
+  siteId       String
+  orgId        String
+  prompt       String
+  response     String
+  model        String
+  tokensUsed   Int
+  createdAt    DateTime       @default(now())
+  savedAt      DateTime?
+  feedback     InsightFeedback?
+  site         Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  org          Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy    User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdById  String?
+}
+

@@ -1,0 +1,27 @@
+{
+  "name": "@pulseboard/worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@pulseboard/ai-engine": "workspace:*",
+    "@pulseboard/cache": "workspace:*",
+    "@pulseboard/db": "workspace:*",
+    "@pulseboard/email": "workspace:*",
+    "@pulseboard/plausible-sdk": "workspace:*",
+    "@pulseboard/queue": "workspace:*",
+    "bullmq": "^5.50.0",
+    "pino": "^9.6.0",
+    "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.3"
+  }
+}
+
