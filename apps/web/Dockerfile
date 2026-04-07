@@ -2,7 +2,7 @@ FROM node:20-alpine AS base
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 FROM base AS deps
 COPY package.json pnpm-workspace.yaml turbo.json tsconfig.json ./
