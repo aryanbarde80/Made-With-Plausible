@@ -32,4 +32,4 @@ ENV NODE_ENV=production
 ENV PORT=10000
 COPY --from=builder /app ./
 WORKDIR /app/apps/web
-CMD ["sh", "-c", "pnpm exec next start -p ${PORT:-10000} -H 0.0.0.0"]
+CMD ["sh", "./start.sh"]
