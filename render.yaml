@@ -1,3 +1,31 @@
+envVarGroups:
+  - name: pulseboard-shared
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ABLY_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_ABLY_KEY
+        sync: false
+      - key: PLAUSIBLE_BASE_URL
+        sync: false
+      - key: PLAUSIBLE_API_KEY
+        sync: false
+      - key: OLLAMA_BASE_URL
+        sync: false
+      - key: OLLAMA_MODEL
+        value: llama3
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        value: PulseBoard <hello@pulseboard.local>
+
 services:
   - type: keyvalue
     name: pulseboard-redis
@@ -12,9 +40,9 @@ services:
     dockerContext: .
     plan: starter
     autoDeploy: true
+    envVarGroups:
+      - pulseboard-shared
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: DATABASE_URL
         fromDatabase:
           name: pulseboard-db
@@ -22,7 +50,7 @@ services:
       - key: REDIS_URL
         fromService:
           name: pulseboard-redis
-          type: redis
+          type: keyvalue
           property: connectionString
       - key: NEXTAUTH_SECRET
         generateValue: true
@@ -34,30 +62,6 @@ services:
         value: pulseboard.session
       - key: PUBLIC_DEFAULT_ORG_SLUG
         value: demo
-      - key: OLLAMA_MODEL
-        value: llama3
-      - key: SMTP_FROM
-        value: PulseBoard <hello@pulseboard.local>
-      - key: ABLY_API_KEY
-        sync: false
-      - key: NEXT_PUBLIC_ABLY_KEY
-        sync: false
-      - key: PLAUSIBLE_BASE_URL
-        sync: false
-      - key: PLAUSIBLE_API_KEY
-        sync: false
-      - key: OLLAMA_BASE_URL
-        sync: false
-      - key: SMTP_HOST
-        sync: false
-      - key: SMTP_PORT
-        value: "587"
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASS
-        sync: false
-      - key: SMTP_FROM
-        sync: false
 
   - type: worker
     name: pulseboard-worker
@@ -65,6 +69,8 @@ services:
     dockerfilePath: ./apps/worker/Dockerfile
     dockerContext: .
     autoDeploy: true
+    envVarGroups:
+      - pulseboard-shared
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -79,14 +85,6 @@ services:
         fromDatabase:
           name: pulseboard-db
           property: connectionString
-      - key: PLAUSIBLE_BASE_URL
-        sync: false
-      - key: PLAUSIBLE_API_KEY
-        sync: false
-      - key: OLLAMA_BASE_URL
-        sync: false
-      - key: OLLAMA_MODEL
-        value: llama3
 
 databases:
   - name: pulseboard-db
