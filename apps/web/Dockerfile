@@ -18,6 +18,7 @@ COPY packages/plugin-runtime/package.json packages/plugin-runtime/package.json
 COPY packages/queue/package.json packages/queue/package.json
 COPY packages/types/package.json packages/types/package.json
 COPY packages/ui/package.json packages/ui/package.json
+COPY packages/db/prisma packages/db/prisma
 RUN pnpm install --frozen-lockfile=false
 
 FROM base AS builder
