@@ -4,11 +4,15 @@ import { BarChart3, Bot, LayoutDashboard, Plug, Settings, Shield, Zap } from "lu
 export function AppShell({
   children,
   title,
-  subtitle
+  subtitle,
+  userName,
+  logoutSlot
 }: {
   children: React.ReactNode;
   title: string;
   subtitle?: string;
+  userName?: string | null;
+  logoutSlot?: React.ReactNode;
 }) {
   const nav = [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -53,8 +57,13 @@ export function AppShell({
             {subtitle ? <p className="mt-2 max-w-2xl text-zinc-600">{subtitle}</p> : null}
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <div className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-600">Acme Labs</div>
+            {userName ? (
+              <div className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-600">
+                {userName}
+              </div>
+            ) : null}
             <div className="rounded-full bg-violet-600 px-4 py-2 text-sm font-medium text-white">You + 2 teammates viewing</div>
+            {logoutSlot}
           </div>
         </div>
         {children}
@@ -62,4 +71,3 @@ export function AppShell({
     </div>
   );
 }
-

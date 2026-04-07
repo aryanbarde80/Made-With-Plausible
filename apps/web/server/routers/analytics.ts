@@ -1,3 +1,8 @@
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+
+import { db } from "@pulseboard/db";
+
 import { createTRPCRouter, publicProcedure } from "../trpc/trpc";
 import { breakdownRows, trafficSeries } from "../../lib/mock-data";
 import { PlausibleClient } from "@pulseboard/plausible-sdk";
@@ -14,7 +19,8 @@ function getClient() {
 }
 
 export const analyticsRouter = createTRPCRouter({
-  getStats: publicProcedure.query(async () => {
+  getStats: publicProcedure.input(z.object({ siteId: z.string() })).query(async ({ ctx, input }) => {
+    const site = await getSiteOrThrow(ctx.orgId, input.siteId);
     const client = getClient();
 
     if (!client) {
@@ -27,7 +33,7 @@ export const analyticsRouter = createTRPCRouter({
       };
     }
 
-    const stats = await client.getSiteStats("demo-site");
+    const stats = await client.getSiteStats(site.plausibleSiteId ?? site.id);
 
     return {
       visitors: stats.visitors,
@@ -37,16 +43,38 @@ export const analyticsRouter = createTRPCRouter({
       avgDuration: stats.visitDuration
     };
   }),
-  getTimeseries: publicProcedure.query(async () => {
+  getTimeseries: publicProcedure.input(z.object({ siteId: z.string() })).query(async ({ ctx, input }) => {
+    const site = await getSiteOrThrow(ctx.orgId, input.siteId);
     const client = getClient();
-    return client ? client.getTimeseries("demo-site") : trafficSeries;
+    return client ? client.getTimeseries(site.plausibleSiteId ?? site.id) : trafficSeries;
   }),
-  getBreakdown: publicProcedure.query(async () => {
+  getBreakdown: publicProcedure.input(z.object({ siteId: z.string() })).query(async ({ ctx, input }) => {
+    const site = await getSiteOrThrow(ctx.orgId, input.siteId);
     const client = getClient();
-    return client ? client.getBreakdown("demo-site", "source") : breakdownRows;
+    return client ? client.getBreakdown(site.plausibleSiteId ?? site.id, "source") : breakdownRows;
   }),
-  getRealtime: publicProcedure.query(async () => {
+  getRealtime: publicProcedure.input(z.object({ siteId: z.string() })).query(async ({ ctx, input }) => {
+    const site = await getSiteOrThrow(ctx.orgId, input.siteId);
     const client = getClient();
-    return { visitors: client ? await client.getRealtimeVisitors("demo-site") : 28 };
+    return { visitors: client ? await client.getRealtimeVisitors(site.plausibleSiteId ?? site.id) : 28 };
   })
 });
+
+async function getSiteOrThrow(orgId: string | null, siteId: string) {
+  if (!orgId) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  const site = await db.site.findFirst({
+    where: {
+      id: siteId,
+      orgId
+    }
+  });
+
+  if (!site) {
+    throw new TRPCError({ code: "NOT_FOUND" });
+  }
+
+  return site;
+}

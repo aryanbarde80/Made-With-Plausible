@@ -7,12 +7,6 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const response = NextResponse.next();
 
-  response.headers.set("x-org-id", "demo-org");
-
-  if (pathname.startsWith("/superadmin")) {
-    response.headers.set("x-role", "SUPERADMIN");
-  }
-
   if (publicRoutes.includes(pathname) || pathname.startsWith("/api") || pathname.startsWith("/share")) {
     return response;
   }
@@ -23,4 +17,3 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"]
 };
-
