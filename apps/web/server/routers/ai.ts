@@ -24,24 +24,24 @@ export const aiRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-    const response = await generateInsight(input.prompt, {
-      siteName: site.domain,
-      summary:
-        "Last 30 days: 12.3k visitors, 44.8k pageviews, organic search is the strongest source, pricing page traffic is growing, bounce rate is improving."
-    });
+      const insight = await generateInsight(input.prompt, {
+        siteName: site.domain,
+        summary:
+          "Last 30 days: 12.3k visitors, 44.8k pageviews, organic search is the strongest source, pricing page traffic is growing, bounce rate is improving."
+      });
 
       await db.aIInsight.create({
         data: {
           siteId: site.id,
           orgId: ctx.orgId,
           prompt: input.prompt,
-          response,
-          model: process.env.OPENAI_API_KEY ? "openai" : "fallback",
-          tokensUsed: response.length
+          response: insight.text,
+          model: `${insight.provider}:${insight.model}`,
+          tokensUsed: insight.text.length
         }
       });
 
-    return { response };
+      return { response: insight.text, provider: insight.provider, model: insight.model };
     }),
   getHistory: publicProcedure.input(z.object({ siteId: z.string() })).query(async ({ ctx, input }) => {
     if (!ctx.orgId) {

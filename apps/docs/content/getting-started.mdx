@@ -5,5 +5,95 @@ description: Launch PulseBoard locally.
 
 # Getting Started
 
-Start Docker, install dependencies, run Prisma migrations, seed the demo org, and boot the Turbo dev pipeline.
+PulseBoard is a multi-tenant analytics workspace that sits on top of Plausible, then adds collaboration, AI, dashboards, alerts, reports, and plugin-driven product workflows.
 
+## Quick start
+
+```bash
+git clone https://github.com/aryanbarde80/Made-With-Plausible.git
+cd Made-With-Plausible
+pnpm install
+cp .env.example .env.local
+docker compose up -d
+pnpm db:migrate
+pnpm db:seed
+pnpm dev
+```
+
+## What runs locally
+
+- Next.js app in `apps/web`
+- docs app in `apps/docs`
+- worker runtime in `apps/worker`
+- Postgres via Docker `postgres:16-alpine`
+- Redis via Docker `redis:7-alpine`
+- Plausible via Docker
+- ClickHouse via Docker
+- Ollama via Docker
+
+In production, these two move to managed infrastructure:
+
+- Postgres -> Render Postgres
+- Redis -> Render Key Value
+
+## Why the stack looks like this
+
+### Plausible
+
+Plausible is the analytics engine. PulseBoard uses it for traffic metrics, breakdowns, and realtime analytics data instead of rebuilding an analytics backend from scratch.
+
+### Ably
+
+Ably powers presence and realtime collaboration. Use `Ably Pub/Sub` when creating the Ably app for this project.
+
+### Redis
+
+Redis is used for:
+
+- cache
+- rate limiting
+- background jobs
+
+### PostgreSQL
+
+PostgreSQL stores users, orgs, dashboards, alerts, reports, plugins, and all other PulseBoard product state.
+
+### Ollama
+
+Ollama powers AI insight generation using site context.
+
+## Required external envs in production
+
+```env
+PLAUSIBLE_BASE_URL=
+PLAUSIBLE_API_KEY=
+ABLY_API_KEY=
+NEXT_PUBLIC_ABLY_KEY=
+RESEND_API_KEY=
+RESEND_FROM=PulseBoard <onboarding@resend.dev>
+GROQ_KEY=
+DEEPSEEK_KEY=
+```
+
+## Ably key format
+
+Use the `Root` key from Ably.
+
+If the full key is:
+
+```env
+abc123.xyz456:supersecret
+```
+
+Then set:
+
+```env
+ABLY_API_KEY=abc123.xyz456:supersecret
+NEXT_PUBLIC_ABLY_KEY=abc123.xyz456
+```
+
+## More docs
+
+- See the root `README.md` for the full repo guide.
+- See `docs/ARCHITECTURE.md` for system design.
+- See `docs/DEPLOYMENT.md` for Render setup.
