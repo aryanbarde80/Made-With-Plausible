@@ -1,6 +1,6 @@
 # PulseBoard
 
-PulseBoard is a multi-tenant analytics workspace built around self-hosted Plausible Analytics. It combines dashboards, realtime collaboration, AI-assisted insights, alerts, reports, plugins, and a public API inside a Turbo monorepo. The repository is structured so local development uses Docker for stateful services, while production deploys cleanly to Render with one Docker web service plus managed Postgres and Redis.
+PulseBoard is a multi-tenant analytics workspace built around self-hosted Plausible Analytics. It combines dashboards, realtime collaboration, AI-assisted insights, alerts, reports, plugins, and a public API inside a Turbo monorepo. The repository is structured so local development uses Docker for stateful services, while production deploys cleanly to Render using a **Render Blueprint** (`render.yaml`) that provisions a Docker web service, managed Postgres, and Redis.
 
 ## What this repo includes
 
@@ -210,7 +210,7 @@ The web service starts both:
 - the Next.js application
 - the background worker loop
 
-This is done through [`apps/web/start.sh`](/C:/Users/aryan/OneDrive/Documents/New%20project%202/Made-With-Plausible/apps/web/start.sh).
+This is done through the [`apps/web/start.sh`](./apps/web/start.sh) entrypoint script, which also handles automatic database migrations on startup.
 
 ## Monorepo layout
 

@@ -27,14 +27,13 @@ Important distinction:
 
 ## Render strategy
 
-The simplest production path is:
+The recommended production path is using the **Render Blueprint** (`render.yaml`) included in the repository:
 
-1. Create `pulseboard-db` on Render.
-2. Create `pulseboard-redis` on Render.
-3. Create `pulseboard-web` as a Docker web service.
-4. Point it to `apps/web/Dockerfile`.
-5. Add the required env vars.
-6. Deploy.
+1. Connect your GitHub repository to Render.
+2. Render will automatically detect the `render.yaml` file.
+3. Review the configuration and click **Apply**.
+4. Render will provision the database, Redis, and the web service with the correct environment variable bindings.
+5. Add any missing external API keys (like Plausible, Ably, or Resend) in the Render dashboard.
 
 Why this matters:
 
